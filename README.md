@@ -20,7 +20,7 @@ As opções do servidor ficam no `.env`. Na primeira vez:
 cp .env.example .env
 ```
 
-Edite versão, memória, dificuldade, whitelist, proteção de spawn, nome e MOTD ali. O `composer.yaml` lê esse arquivo. Sem `.env`, vale o que está no exemplo.
+Edite versão, memória, dificuldade, whitelist, `ONLINE_MODE`, proteção de spawn, nome e MOTD ali. O `composer.yaml` lê esse arquivo. Sem `.env`, vale o que está no exemplo.
 
 Depois de salvar:
 
@@ -63,6 +63,26 @@ docker exec minecraft-server rcon-cli whitelist add NICK
 docker exec minecraft-server rcon-cli whitelist remove NICK
 docker exec minecraft-server rcon-cli whitelist list
 ```
+
+## Conta original e conta sem original
+
+Quem pode entrar é o `ONLINE_MODE` no `.env`.
+
+- `ONLINE_MODE=TRUE` — só conta original (Mojang/Microsoft). É o valor atual.
+- `ONLINE_MODE=FALSE` — conta original e conta sem original entram no mesmo endereço. O cliente original não muda nada.
+
+A whitelist continua obrigatória nos dois casos.
+
+Para trocar, edite o `.env` e suba de novo:
+
+```bash
+docker compose -f composer.yaml up -d
+```
+
+Com `FALSE`, o servidor para de confirmar a conta na Mojang. Duas consequências:
+
+- O personagem de quem já jogou com conta original fica no UUID antigo. A mesma pessoa entra como jogador novo: inventário, baú e conquistas não acompanham.
+- O nick passa a ser a identidade. Quem souber um nick da whitelist entra como essa pessoa.
 
 ## Operador
 
