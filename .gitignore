@@ -1,0 +1,16 @@
+# Minecraft runtime
+/data/
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.log
+
+# System
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
