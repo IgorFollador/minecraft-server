@@ -1,54 +1,153 @@
 # Minecraft Server
 
-Servidor Minecraft Java Edition utilizando Paper,
-Docker Compose e Playit.gg para acesso externo.
+Servidor **Filhos do Velho Barreiro**: Minecraft Java Edition 26.1.2,
+Paper, Docker Compose e Playit.gg para acesso externo.
+
+O mundo fica em `./data`. Mudar dificuldade, whitelist, OP, nome ou ícone
+não apaga o mapa. O mundo só some se a pasta `data/world` for apagada.
 
 ## Requisitos
 
-- Docker Desktop
-- Docker Compose
+- Docker e Docker Compose
+- Cliente Minecraft **26.1.2** (a versão do launcher tem que bater com a do servidor)
 - Conta no [Playit.gg](https://playit.gg) (para acesso pela internet)
 
-## Iniciar servidor
+## Configuração
+
+As opções do servidor ficam no `.env`. Na primeira vez:
+
+```bash
+cp .env.example .env
+```
+
+Edite versão, memória, dificuldade, whitelist, proteção de spawn, nome e MOTD ali. O `composer.yaml` lê esse arquivo. Sem `.env`, vale o que está no exemplo.
+
+Depois de salvar:
 
 ```bash
 docker compose -f composer.yaml up -d
 ```
 
-## Visualizar logs
+O `.env` fica fora do Git. O `.env.example` é o modelo versionado.
+
+## Subir, parar e ver logs
 
 ```bash
-docker compose -f composer.yaml logs -f
+docker compose -f composer.yaml up -d    # sobe (cria na primeira vez)
+docker compose -f composer.yaml start    # liga de novo depois de um stop
+docker compose -f composer.yaml stop     # para, o mundo continua em ./data
+docker compose -f composer.yaml logs -f  # acompanha os logs
 ```
 
-## Parar servidor
+Quem está online:
 
 ```bash
-docker compose -f composer.yaml stop
+docker exec minecraft-server rcon-cli list
 ```
 
-## Administração
+## Acesso
 
-Adicionar jogador à whitelist:
+- Nesta máquina: `localhost:25565`
+- Internet: na primeira subida, o plugin do Playit imprime um link
+  `https://playit.gg/claim/...` nos logs. Abra o link, conclua o claim
+  e use o endereço que o site entregar (algo como `*.craft.playit.gg`
+  ou `*.tun.ply.gg`).
+
+A porta do Minecraft fica só em `127.0.0.1`. O túnel sai de dentro do
+container, sem abrir o roteador.
+
+A whitelist está ligada. Antes de alguém entrar:
 
 ```bash
 docker exec minecraft-server rcon-cli whitelist add NICK
+docker exec minecraft-server rcon-cli whitelist remove NICK
+docker exec minecraft-server rcon-cli whitelist list
 ```
 
-Conceder permissão de operador:
+## Operador
+
+Tirar OP de alguém (o comando continua disponível):
+
+```bash
+docker exec minecraft-server rcon-cli deop NICK
+```
+
+Devolver:
 
 ```bash
 docker exec minecraft-server rcon-cli op NICK
 ```
 
-## Acesso
+## Dificuldade
 
-- Local: `localhost:25565`
-- Internet: na primeira subida, o plugin do Playit imprime um link
-  `https://playit.gg/claim/...` nos logs. Abra o link, conclua o claim
-  e use o endereço `*.craft.playit.gg` que o site entregar.
+Na hora, sem reiniciar e sem perder o mundo. Valores: `peaceful`, `easy`, `normal`, `hard`.
 
-## Persistência
+```bash
+docker exec minecraft-server rcon-cli difficulty normal
+```
 
-Os dados ficam armazenados em `./data`,
-fora do controle de versão.
+Para a mudança sobreviver a um `up -d`, altere `DIFFICULTY` no `.env` e suba de novo:
+
+```bash
+docker compose -f composer.yaml up -d
+```
+
+Outros comandos pelo mesmo caminho:
+
+```bash
+docker exec minecraft-server rcon-cli time set day
+docker exec minecraft-server rcon-cli weather clear
+```
+
+## Proteção da área inicial
+
+`SPAWN_PROTECTION` no `.env` é o raio, em blocos, em volta do
+spawn onde só OP quebra e coloca bloco. Está em `0`, então todo mundo
+constrói na área inicial.
+
+Para ligar de novo, mude o valor (o padrão do Minecraft é `16`) e suba:
+
+```bash
+docker compose -f composer.yaml up -d
+```
+
+## Nome e ícone
+
+No `.env`:
+
+- `SERVER_NAME` — nome do servidor
+- `MOTD` — texto da lista de servidores. `§6` é dourado, `§l` é negrito, `§r` limpa o formato, `§8` é cinza, `\n` quebra a linha
+- `icon.png` na raiz do projeto — logo 64×64 mostrada na lista
+
+Depois de trocar nome ou ícone:
+
+```bash
+docker compose -f composer.yaml up -d
+```
+
+## Backup do mapa
+
+Os arquivos vão para `backups/`. O Git guarda só o `.gitkeep`; os `.tar.gz` ficam fora do repositório.
+
+Com o servidor no ar, grave o mundo e compacte:
+
+```bash
+docker exec minecraft-server rcon-cli save-off
+docker exec minecraft-server rcon-cli save-all flush
+stamp=$(date +%Y%m%d-%H%M%S)
+tar -C data -czf "backups/world-${stamp}.tar.gz" world
+docker exec minecraft-server rcon-cli save-on
+```
+
+O autosave volta no último comando. O arquivo inclui overworld, Nether, End e os dados dos jogadores.
+
+Para restaurar, pare o servidor, troque a pasta e suba de novo:
+
+```bash
+docker compose -f composer.yaml stop
+mv data/world "data/world-antes-$(date +%Y%m%d-%H%M%S)"
+tar -C data -xzf backups/world-AAAAMMDD-HHMMSS.tar.gz
+docker compose -f composer.yaml start
+```
+
+Troque `world-AAAAMMDD-HHMMSS.tar.gz` pelo arquivo que quiser voltar.

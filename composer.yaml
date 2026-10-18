@@ -10,31 +10,35 @@ services:
     ports:
       - "127.0.0.1:25565:25565"
 
+    env_file:
+      - path: .env
+        required: false
+
     environment:
-      EULA: "TRUE"
-      TYPE: "PAPER"
-      VERSION: "26.1.2"
+      EULA: "${EULA:-TRUE}"
+      TYPE: "${TYPE:-PAPER}"
+      VERSION: "${VERSION:-26.1.2}"
 
-      MEMORY: "4G"
-      MAX_PLAYERS: "10"
+      MEMORY: "${MEMORY:-4G}"
+      MAX_PLAYERS: "${MAX_PLAYERS:-10}"
 
-      MODE: "survival"
-      DIFFICULTY: "normal"
+      MODE: "${MODE:-survival}"
+      DIFFICULTY: "${DIFFICULTY:-normal}"
 
-      ONLINE_MODE: "TRUE"
-      ENABLE_WHITELIST: "TRUE"
-      SPAWN_PROTECTION: "0"
+      ONLINE_MODE: "${ONLINE_MODE:-TRUE}"
+      ENABLE_WHITELIST: "${ENABLE_WHITELIST:-TRUE}"
+      SPAWN_PROTECTION: "${SPAWN_PROTECTION:-0}"
 
-      VIEW_DISTANCE: "10"
-      SIMULATION_DISTANCE: "6"
+      VIEW_DISTANCE: "${VIEW_DISTANCE:-10}"
+      SIMULATION_DISTANCE: "${SIMULATION_DISTANCE:-6}"
 
-      SERVER_NAME: "Filhos do Velho Barreiro"
-      MOTD: "§6§lFilhos do Velho Barreiro§r\\n§8Survival Paper"
+      SERVER_NAME: "${SERVER_NAME:-Filhos do Velho Barreiro}"
+      MOTD: "${MOTD:-§6§lFilhos do Velho Barreiro§r\\n§8Survival Paper}"
 
-      ICON: /icon.png
-      OVERRIDE_ICON: "TRUE"
+      ICON: "${ICON:-/icon.png}"
+      OVERRIDE_ICON: "${OVERRIDE_ICON:-TRUE}"
 
-      PLUGINS: "https://github.com/playit-cloud/playit-minecraft-plugin/releases/download/v0.2.0/playit-minecraft-plugin.jar"
+      PLUGINS: "${PLUGINS:-https://github.com/playit-cloud/playit-minecraft-plugin/releases/download/v0.2.0/playit-minecraft-plugin.jar}"
 
     volumes:
       - ./data:/data

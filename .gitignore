@@ -1,6 +1,10 @@
 # Minecraft runtime
 /data/
 
+# World backups
+/backups/*
+!/backups/.gitkeep
+
 # Environment and credentials
 .env
 .env.*
