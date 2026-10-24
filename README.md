@@ -1,6 +1,6 @@
 # Minecraft Server
 
-Servidor **Filhos do Velho Barreiro**: Minecraft Java Edition 26.1.2,
+Servidor **Filhos do Velho Barreiro**: Minecraft Java Edition 26.3,
 Paper, Docker Compose e Playit.gg para acesso externo.
 
 O mundo fica em `./data`. Mudar dificuldade, whitelist, OP, nome ou ícone
@@ -9,7 +9,7 @@ não apaga o mapa. O mundo só some se a pasta `data/world` for apagada.
 ## Requisitos
 
 - Docker e Docker Compose
-- Cliente Minecraft **26.1.2** (a versão do launcher tem que bater com a do servidor)
+- Cliente Minecraft **26.3** (a versão do launcher tem que bater com a do servidor)
 - Conta no [Playit.gg](https://playit.gg) (para acesso pela internet)
 
 ## Configuração

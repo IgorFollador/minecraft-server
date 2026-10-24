@@ -17,7 +17,7 @@ services:
     environment:
       EULA: "${EULA:-TRUE}"
       TYPE: "${TYPE:-PAPER}"
-      VERSION: "${VERSION:-26.1.2}"
+      VERSION: "${VERSION:-26.3}"
 
       MEMORY: "${MEMORY:-4G}"
       MAX_PLAYERS: "${MAX_PLAYERS:-10}"
@@ -38,8 +38,7 @@ services:
       ICON: "${ICON:-/icon.png}"
       OVERRIDE_ICON: "${OVERRIDE_ICON:-TRUE}"
 
-      PLUGINS: "${PLUGINS:-https://github.com/playit-cloud/playit-minecraft-plugin/releases/download/v0.2.0/playit-minecraft-plugin.jar}"
-
     volumes:
       - ./data:/data
+      - ./plugins:/plugins:ro
       - ./icon.png:/icon.png:ro
