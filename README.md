@@ -104,17 +104,19 @@ docker exec minecraft-server rcon-cli list
 
 ## Acesso
 
-- Nesta máquina: `localhost:25565`
-- Internet: o túnel do Playit sobe no container `playit`, com o mesmo
-  agente de antes. O endereço continua sendo o que o site já entregou
-  (algo como `*.craft.playit.gg` ou `*.tun.ply.gg`).
+- Nesta máquina: `localhost` (ou `127.0.0.1`). Não use o endereço do
+  Playit para jogar no mesmo PC — o túnel não “volta” para a própria
+  casa, e a lista fica em *Can't connect* / ping infinito.
+- Internet: `ambulance-bulgarian.tun.ply.gg:53890`. Sem a porta, o
+  cliente tenta `25565` e o ping não responde. A 53890 é a porta que o
+  Playit publicou neste túnel (também existe um registro SRV).
+
+Cliente **26.3** (Fabric). O servidor só escuta em `127.0.0.1:25565`;
+o túnel sai pelo container `playit`, sem abrir o roteador.
 
 Na primeira vez em outra máquina, copie o `playit.secret` (fica fora do
 Git) ou gere um agente novo em [Playit.gg](https://playit.gg) e coloque
 a chave nesse arquivo.
-
-A porta do Minecraft fica só em `127.0.0.1`. O túnel sai pelo container
-do Playit, sem abrir o roteador.
 
 A whitelist está ligada. Antes de alguém entrar:
 
