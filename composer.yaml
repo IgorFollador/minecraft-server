@@ -16,7 +16,7 @@ services:
 
     environment:
       EULA: "${EULA:-TRUE}"
-      TYPE: "${TYPE:-PAPER}"
+      TYPE: "${TYPE:-FABRIC}"
       VERSION: "${VERSION:-26.3}"
 
       MEMORY: "${MEMORY:-4G}"
@@ -33,12 +33,26 @@ services:
       SIMULATION_DISTANCE: "${SIMULATION_DISTANCE:-6}"
 
       SERVER_NAME: "${SERVER_NAME:-Filhos do Velho Barreiro}"
-      MOTD: "${MOTD:-§6§lFilhos do Velho Barreiro§r\\n§8Survival Paper}"
+      MOTD: "${MOTD:-§6§lFilhos do Velho Barreiro§r\\n§8Survival Fabric}"
 
       ICON: "${ICON:-/icon.png}"
       OVERRIDE_ICON: "${OVERRIDE_ICON:-TRUE}"
 
+      MODRINTH_PROJECTS: "${MODRINTH_PROJECTS:-fabric-api}"
+
     volumes:
       - ./data:/data
-      - ./plugins:/plugins:ro
+      - ./mods:/mods:ro
       - ./icon.png:/icon.png:ro
+
+  playit:
+    image: ghcr.io/playit-cloud/playit-agent:latest
+    container_name: playit
+    restart: unless-stopped
+    network_mode: "service:minecraft"
+    depends_on:
+      - minecraft
+    environment:
+      SECRET_KEY_FILE: /run/secrets/playit
+    volumes:
+      - ./playit.secret:/run/secrets/playit:ro

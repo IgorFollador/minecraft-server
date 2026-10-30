@@ -1,7 +1,7 @@
 # Minecraft Server
 
 Servidor **Filhos do Velho Barreiro**: Minecraft Java Edition 26.3,
-Paper, Docker Compose e Playit.gg para acesso externo.
+Fabric, Docker Compose e Playit.gg para acesso externo.
 
 O mundo fica em `./data`. Mudar dificuldade, whitelist, OP, nome ou ícone
 não apaga o mapa. O mundo só some se a pasta `data/world` for apagada.
@@ -20,15 +20,72 @@ As opções do servidor ficam no `.env`. Na primeira vez:
 cp .env.example .env
 ```
 
-Edite versão, memória, dificuldade, whitelist, `ONLINE_MODE`, proteção de spawn, nome e MOTD ali. O `composer.yaml` lê esse arquivo. Sem `.env`, vale o que está no exemplo.
-
-Depois de salvar:
+Edite o `.env`, salve e aplique:
 
 ```bash
 docker compose -f composer.yaml up -d
 ```
 
-O `.env` fica fora do Git. O `.env.example` é o modelo versionado.
+O `composer.yaml` lê esse arquivo. Sem `.env`, vale o que está no exemplo. O `.env` fica fora do Git; o `.env.example` é o modelo versionado.
+
+## Opções
+
+Tudo abaixo é o `.env`, salvo quando dito o contrário. Depois de mudar qualquer item, rode `docker compose -f composer.yaml up -d`.
+
+### Tipo e versão
+
+| Opção | Valor atual | O que faz |
+| --- | --- | --- |
+| `EULA` | `TRUE` | Aceita o EULA da Mojang. Sem isso o servidor não sobe. |
+| `TYPE` | `FABRIC` | Motor do servidor. `FABRIC` usa mods. `PAPER` usa plugins. Os dois não misturam: plugin do Paper não carrega no Fabric, e mod do Fabric não carrega no Paper. Trocar o tipo não apaga o mundo, mas o mapa do Paper precisa de um ajuste de arquivos para o Fabric (já feito neste servidor). |
+| `VERSION` | `26.3` | Versão do Minecraft. Tem que ser a mesma do launcher de quem entra. |
+
+### Desempenho e capacidade
+
+| Opção | Valor atual | O que faz |
+| --- | --- | --- |
+| `MEMORY` | `4G` | RAM do Java. Ex.: `2G`, `6G`, `8G`. |
+| `MAX_PLAYERS` | `10` | Quantos jogadores o servidor aceita ao mesmo tempo. |
+| `VIEW_DISTANCE` | `10` | Chunks que o cliente vê ao redor. Número maior = mapa mais longe, mais CPU e RAM. |
+| `SIMULATION_DISTANCE` | `6` | Chunks em que o jogo de fato roda (mobs, fazenda, redstone). Pode ser menor que a visão. |
+
+### Jogo
+
+| Opção | Valor atual | O que faz |
+| --- | --- | --- |
+| `MODE` | `survival` | Modo padrão de quem entra: `survival`, `creative` ou `adventure`. |
+| `DIFFICULTY` | `normal` | `peaceful`, `easy`, `normal` ou `hard`. Dá para mudar na hora com `rcon-cli difficulty ...`; para ficar permanente, altere aqui. |
+| `SPAWN_PROTECTION` | `0` | Raio, em blocos, em volta do spawn onde só OP quebra e coloca bloco. `0` desliga. O padrão do Minecraft é `16`. |
+
+### Quem entra
+
+| Opção | Valor atual | O que faz |
+| --- | --- | --- |
+| `ONLINE_MODE` | `TRUE` | `TRUE` = só conta original (Mojang/Microsoft). `FALSE` = conta original e conta sem original no mesmo endereço. Ver [Conta original e conta sem original](#conta-original-e-conta-sem-original). |
+| `ENABLE_WHITELIST` | `TRUE` | `TRUE` = só nick na whitelist entra. Continua valendo com `ONLINE_MODE=FALSE`. |
+
+### Aparência
+
+| Opção | Valor atual | O que faz |
+| --- | --- | --- |
+| `SERVER_NAME` | `Filhos do Velho Barreiro` | Nome interno do servidor. |
+| `MOTD` | texto com `§` | Texto da lista de servidores. `§6` dourado, `§l` negrito, `§r` limpa o formato, `§8` cinza, `\n` quebra a linha. |
+| `ICON` | `/icon.png` | Caminho da logo **dentro** do container. Não precisa mudar. O arquivo real é `icon.png` na raiz do projeto (64×64). |
+| `OVERRIDE_ICON` | `TRUE` | Recopia o `icon.png` a cada subida. Sem isso, um ícone antigo em `data/` pode ficar. |
+
+### Mods (Fabric)
+
+| Opção | Valor atual | O que faz |
+| --- | --- | --- |
+| `MODRINTH_PROJECTS` | `fabric-api` | Lista do [Modrinth](https://modrinth.com), separada por vírgula. O `fabric-api` é o básico que quase todo mod precisa. Ex.: `fabric-api,lithium,sodium`. |
+
+JARs soltos vão em `./mods`. A imagem copia essa pasta para dentro do servidor na subida. Cliente e servidor têm que usar os **mesmos** mods (e a mesma versão).
+
+### Playit (internet)
+
+Não fica no `.env`. A chave do agente está em `playit.secret` (fora do Git). Sem esse arquivo o container `playit` não autentica o túnel. Em outra máquina, copie o arquivo ou gere um agente novo no [Playit.gg](https://playit.gg).
+
+A porta `25565` no `composer.yaml` está em `127.0.0.1`, então o Minecraft não fica aberto no roteador; quem entra de fora usa o endereço `*.tun.ply.gg` / `*.craft.playit.gg`.
 
 ## Subir, parar e ver logs
 
@@ -48,13 +105,16 @@ docker exec minecraft-server rcon-cli list
 ## Acesso
 
 - Nesta máquina: `localhost:25565`
-- Internet: na primeira subida, o plugin do Playit imprime um link
-  `https://playit.gg/claim/...` nos logs. Abra o link, conclua o claim
-  e use o endereço que o site entregar (algo como `*.craft.playit.gg`
-  ou `*.tun.ply.gg`).
+- Internet: o túnel do Playit sobe no container `playit`, com o mesmo
+  agente de antes. O endereço continua sendo o que o site já entregou
+  (algo como `*.craft.playit.gg` ou `*.tun.ply.gg`).
 
-A porta do Minecraft fica só em `127.0.0.1`. O túnel sai de dentro do
-container, sem abrir o roteador.
+Na primeira vez em outra máquina, copie o `playit.secret` (fica fora do
+Git) ou gere um agente novo em [Playit.gg](https://playit.gg) e coloque
+a chave nesse arquivo.
+
+A porta do Minecraft fica só em `127.0.0.1`. O túnel sai pelo container
+do Playit, sem abrir o roteador.
 
 A whitelist está ligada. Antes de alguém entrar:
 
