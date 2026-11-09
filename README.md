@@ -157,10 +157,13 @@ endereço, na mesma versão **26.3**.
 ### Túnel Playit do celular
 
 O túnel Java (`ambulance-bulgarian.tun.ply.gg:53890`) **não** serve no
-Android. Endereço do celular:
+Android. Signaling é o [Warden](https://warden.cloud) (HTTPS na 443), o
+jogo em si continua no UDP do Playit.
 
-- Endereço: `chords-doris.tun.ply.gg`
-- Porta: **19132**
+Endereço do celular/tablet:
+
+- Endereço: `beamingyarrow.wdn.gg`
+- Porta: **443**
 
 Se o túnel Bedrock cair, recrie no [Playit.gg](https://playit.gg):
 
@@ -180,16 +183,16 @@ O token colado é secreto: quem tiver ele acopla um servidor no túnel.
 
 Minecraft → Jogar → Servidores → Adicionar servidor:
 
-- Endereço: `chords-doris.tun.ply.gg`
-- Porta: **19132**
+- Endereço: `beamingyarrow.wdn.gg`
+- Porta: **443**
 
 Não use `ambulance-bulgarian.tun.ply.gg` no celular — esse é só Java.
+Não use a porta **19132** nesse endereço do Warden.
 
 Tem que estar logado na Microsoft/Xbox. A versão do app precisa estar
 na faixa que o Geyser cobre (hoje 26.40–26.63).
 
-A primeira entrada pode pedir “Trust on First Use?” no signaling HTTP.
-Aceite.
+O Warden já usa HTTPS, então não deve aparecer “Trust on First Use?”.
 
 Quem joga no PC **e** no celular sem vincular as contas no Floodgate
 entra como personagem novo (inventário separado). O nick do celular
