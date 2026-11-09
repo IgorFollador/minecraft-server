@@ -9,6 +9,8 @@ services:
 
     ports:
       - "127.0.0.1:25565:25565"
+      - "19132:19132/tcp"
+      - "19132:19132/udp"
 
     dns:
       - 8.8.8.8
@@ -34,6 +36,7 @@ services:
 
       ONLINE_MODE: "${ONLINE_MODE:-TRUE}"
       ENABLE_WHITELIST: "${ENABLE_WHITELIST:-TRUE}"
+      ENFORCE_SECURE_PROFILE: "${ENFORCE_SECURE_PROFILE:-FALSE}"
       SPAWN_PROTECTION: "${SPAWN_PROTECTION:-0}"
 
       VIEW_DISTANCE: "${VIEW_DISTANCE:-10}"
@@ -45,7 +48,7 @@ services:
       ICON: "${ICON:-/icon.png}"
       OVERRIDE_ICON: "${OVERRIDE_ICON:-TRUE}"
 
-      MODRINTH_PROJECTS: "${MODRINTH_PROJECTS:-fabric-api}"
+      MODRINTH_PROJECTS: "${MODRINTH_PROJECTS:-fabric-api,geyser:beta,floodgate}"
 
     volumes:
       - ./data:/data

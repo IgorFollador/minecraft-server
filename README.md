@@ -62,7 +62,8 @@ Tudo abaixo é o `.env`, salvo quando dito o contrário. Depois de mudar qualque
 | Opção | Valor atual | O que faz |
 | --- | --- | --- |
 | `ONLINE_MODE` | `TRUE` | `TRUE` = só conta original (Mojang/Microsoft). `FALSE` = conta original e conta sem original no mesmo endereço. Ver [Conta original e conta sem original](#conta-original-e-conta-sem-original). |
-| `ENABLE_WHITELIST` | `TRUE` | `TRUE` = só nick na whitelist entra. Continua valendo com `ONLINE_MODE=FALSE`. |
+| `ENABLE_WHITELIST` | `TRUE` | `TRUE` = só nick na whitelist entra. Continua valendo com `ONLINE_MODE=FALSE`. Quem entra pelo celular usa `fwhitelist`, não este comando. Ver [Android (Bedrock)](#android-bedrock). |
+| `ENFORCE_SECURE_PROFILE` | `FALSE` | Assinatura de chat da Mojang. `FALSE` = o celular consegue falar no chat. Quem joga no Java não muda. |
 
 ### Aparência
 
@@ -77,15 +78,15 @@ Tudo abaixo é o `.env`, salvo quando dito o contrário. Depois de mudar qualque
 
 | Opção | Valor atual | O que faz |
 | --- | --- | --- |
-| `MODRINTH_PROJECTS` | `fabric-api` | Lista do [Modrinth](https://modrinth.com), separada por vírgula. O `fabric-api` é o básico que quase todo mod precisa. Ex.: `fabric-api,lithium,sodium`. |
+| `MODRINTH_PROJECTS` | `fabric-api,geyser:beta,floodgate` | Lista do [Modrinth](https://modrinth.com), separada por vírgula. O `fabric-api` é o básico. `geyser:beta` e `floodgate` são só no servidor: deixam o Minecraft do celular (Bedrock) entrar no Java. O Geyser no Modrinth só publica beta. |
 
-JARs soltos vão em `./mods`. A imagem copia essa pasta para dentro do servidor na subida. Cliente e servidor têm que usar os **mesmos** mods (e a mesma versão).
+JARs soltos vão em `./mods`. A imagem copia essa pasta para dentro do servidor na subida. Geyser e Floodgate **não** vão no launcher de quem joga no PC. Mod que o cliente Java também precisa instalar (bloco/item novo) o celular não vê.
 
 ### Playit (internet)
 
 Não fica no `.env`. A chave do agente está em `playit.secret` (fora do Git). Sem esse arquivo o container `playit` não autentica o túnel. Em outra máquina, copie o arquivo ou gere um agente novo no [Playit.gg](https://playit.gg).
 
-A porta `25565` no `composer.yaml` está em `127.0.0.1`, então o Minecraft não fica aberto no roteador; quem entra de fora usa o endereço `*.tun.ply.gg` / `*.craft.playit.gg`.
+As portas `25565` (Java) e `19132` (Bedrock, TCP e UDP) no `composer.yaml` estão em `127.0.0.1`, então o Minecraft não fica aberto no roteador; quem entra de fora usa o endereço `*.tun.ply.gg` / `*.craft.playit.gg`. O celular precisa de um túnel Playit **Minecraft Bedrock (NetherNet)** extra — o túnel Java não serve. Ver [Android (Bedrock)](#android-bedrock).
 
 ## Subir, parar e ver logs
 
@@ -111,20 +112,88 @@ docker exec minecraft-server rcon-cli list
   cliente tenta `25565` e o ping não responde. A 53890 é a porta que o
   Playit publicou neste túnel (também existe um registro SRV).
 
-Cliente **26.3** (Fabric). O servidor só escuta em `127.0.0.1:25565`;
-o túnel sai pelo container `playit`, sem abrir o roteador.
+Cliente Java **26.3**. O servidor escuta Java em `127.0.0.1:25565` e
+Bedrock em `127.0.0.1:19132` (TCP e UDP); o túnel sai pelo container
+`playit`, sem abrir o roteador.
 
 Na primeira vez em outra máquina, copie o `playit.secret` (fica fora do
 Git) ou gere um agente novo em [Playit.gg](https://playit.gg) e coloque
 a chave nesse arquivo.
 
-A whitelist está ligada. Antes de alguém entrar:
+A whitelist está ligada. Antes de alguém entrar pelo Java:
 
 ```bash
 docker exec minecraft-server rcon-cli whitelist add NICK
 docker exec minecraft-server rcon-cli whitelist remove NICK
 docker exec minecraft-server rcon-cli whitelist list
 ```
+
+Pelo celular (Bedrock), o nick é o gamertag da Xbox, com um ponto na
+frente (ex.: `.Fulano`). Sem o ponto no comando do Floodgate:
+
+```bash
+docker exec minecraft-server rcon-cli fwhitelist add Gamertag
+docker exec minecraft-server rcon-cli fwhitelist remove Gamertag
+```
+
+O `fwhitelist` só acha quem já entrou em algum servidor com Geyser. Se
+não achar, desliga a whitelist, deixa a pessoa entrar uma vez, e
+depois:
+
+```bash
+docker exec minecraft-server rcon-cli whitelist add ".Gamertag"
+docker exec minecraft-server rcon-cli whitelist on
+```
+
+## Android (Bedrock)
+
+O Minecraft oficial no celular é Bedrock. Este servidor é Java. A ponte
+é o Geyser (traduz o protocolo) e o Floodgate (entra com a conta
+Xbox/Microsoft, sem precisar do Minecraft Java no PC).
+
+O mundo em `./data` não muda. Quem já joga no PC continua no mesmo
+endereço, na mesma versão **26.3**.
+
+### Túnel Playit do celular
+
+O túnel Java (`ambulance-bulgarian.tun.ply.gg:53890`) **não** serve no
+Android. Endereço do celular:
+
+- Endereço: `chords-doris.tun.ply.gg`
+- Porta: **19132**
+
+Se o túnel Bedrock cair, recrie no [Playit.gg](https://playit.gg):
+
+1. Tunnels → New tunnel.
+2. Tipo **Minecraft Bedrock (NetherNet)** — não o “Minecraft Bedrock”
+   antigo (RakNet). Confirme que é experimental.
+3. Abra o túnel → Configuration help → aba **Geyser** → Copy.
+4. Cole em `data/config/Geyser-Fabric/config.yml`, na seção `bedrock:`
+   (e `auth-type: floodgate` em `java:` / `remote:`). Mantenha o
+   espaçamento do YAML.
+5. Suba de novo: `docker compose -f composer.yaml up -d`.
+6. No log, procure `Registered with the external signaling service`.
+
+O token colado é secreto: quem tiver ele acopla um servidor no túnel.
+
+### No celular
+
+Minecraft → Jogar → Servidores → Adicionar servidor:
+
+- Endereço: `chords-doris.tun.ply.gg`
+- Porta: **19132**
+
+Não use `ambulance-bulgarian.tun.ply.gg` no celular — esse é só Java.
+
+Tem que estar logado na Microsoft/Xbox. A versão do app precisa estar
+na faixa que o Geyser cobre (hoje 26.40–26.63).
+
+A primeira entrada pode pedir “Trust on First Use?” no signaling HTTP.
+Aceite.
+
+Quem joga no PC **e** no celular sem vincular as contas no Floodgate
+entra como personagem novo (inventário separado). O nick do celular
+começa com `.`.
 
 ## Conta original e conta sem original
 
