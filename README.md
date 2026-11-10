@@ -55,6 +55,7 @@ Tudo abaixo é o `.env`, salvo quando dito o contrário. Depois de mudar qualque
 | --- | --- | --- |
 | `MODE` | `survival` | Modo padrão de quem entra: `survival`, `creative` ou `adventure`. |
 | `DIFFICULTY` | `normal` | `peaceful`, `easy`, `normal` ou `hard`. Dá para mudar na hora com `rcon-cli difficulty ...`; para ficar permanente, altere aqui. |
+| `SEED` | número | Seed usada **só** na geração de um mapa novo. Mudar o valor com o `data/world` já existente não troca o terreno. Ver [Mundo novo por seed](#mundo-novo-por-seed). |
 | `SPAWN_PROTECTION` | `0` | Raio, em blocos, em volta do spawn onde só OP quebra e coloca bloco. `0` desliga. O padrão do Minecraft é `16`. |
 
 ### Quem entra
@@ -278,6 +279,39 @@ Depois de trocar nome ou ícone:
 ```bash
 docker compose -f composer.yaml up -d
 ```
+
+## Mundo novo por seed
+
+A seed no `.env` (`SEED`) só entra em vigor quando o servidor **gera** o mapa. Com `data/world` já criado, trocar a seed não muda o terreno.
+
+Para apagar o mapa atual, gravar a seed no `.env` e subir um mundo novo:
+
+```bash
+# Troque só este valor:
+SEED=-2098004362385192995
+
+docker compose -f composer.yaml stop
+# Backup rápido do mapa atual (pule se não quiser guardar)
+if [ -d data/world ]; then
+  stamp=$(date +%Y%m%d-%H%M%S)
+  tar -C data -czf "backups/world-${stamp}.tar.gz" world
+fi
+rm -rf data/world
+if grep -q '^SEED=' .env; then
+  sed -i "s/^SEED=.*/SEED=${SEED}/" .env
+else
+  printf '\nSEED=%s\n' "$SEED" >> .env
+fi
+docker compose -f composer.yaml up -d
+```
+
+Quando o container estiver healthy, confira:
+
+```bash
+docker exec minecraft-server rcon-cli seed
+```
+
+Backups do mapa antigo (Godofredo) estão em `backups/godofredo/`.
 
 ## Backup do mapa
 

@@ -33,6 +33,7 @@ services:
 
       MODE: "${MODE:-survival}"
       DIFFICULTY: "${DIFFICULTY:-normal}"
+      SEED: "${SEED:-}"
 
       ONLINE_MODE: "${ONLINE_MODE:-TRUE}"
       ENABLE_WHITELIST: "${ENABLE_WHITELIST:-TRUE}"
